@@ -63,18 +63,18 @@ void exc_handler(u32 type, u32 spsr, u32 *regs)
 	u32 pc, fsr;
 
 	switch(type) {
-		case 1: // UND
-		case 2: // SWI
-		case 3: // INSTR ABORT
-		case 7: // FIQ
-			pc = regs[15] - 4;
-			break;
-		case 4: // DATA ABORT
-			pc = regs[15] - 8;
-			break;
-		default:
-			pc = regs[15];
-			break;
+	case 1: // UND
+	case 2: // SWI
+	case 3: // INSTR ABORT
+	case 7: // FIQ
+		pc = regs[15] - 4;
+		break;
+	case 4: // DATA ABORT
+		pc = regs[15] - 8;
+		break;
+	default:
+		pc = regs[15];
+		break;
 	}
 
 	gecko_printf("Registers (%p):\n", regs);
@@ -90,22 +90,23 @@ void exc_handler(u32 type, u32 spsr, u32 *regs)
 	gecko_printf("DACR: %08x\n", get_dacr());
 
 	switch (type) {
-		case 3: // INSTR ABORT
-		case 4: // DATA ABORT 
-			if(type == 3)
-				fsr = get_ifsr();
-			else
-				fsr = get_dfsr();
-			gecko_printf("Abort type: %s\n", aborts[fsr&0xf]);
-			if(domvalid[fsr&0xf])
-				gecko_printf("Domain: %d\n", (fsr>>4)&0xf);
-			if(type == 4)
-				gecko_printf("Address: 0x%08x\n", get_far());
-		break;
-		default: break;
+	case 3: // INSTR ABORT
+	case 4: // DATA ABORT
+		if (type == 3)
+			fsr = get_ifsr();
+		else
+			fsr = get_dfsr();
+		gecko_printf("Abort type: %s\n", aborts[fsr&0xf]);
+		if (domvalid[fsr&0xf])
+			gecko_printf("Domain: %d\n", (fsr>>4)&0xf);
+		if (type == 4)
+			gecko_printf("Address: 0x%08x\n", get_far());
+	break;
+	default: break;
 	}
 
-	if(type != 3) {
+	if (type != 3)
+	{
 		gecko_printf("Code dump:\n");
 		gecko_printf("%08x:  %08x %08x %08x %08x\n", pc-16, read32(pc-16), read32(pc-12), read32(pc-8), read32(pc-4));
 		gecko_printf("%08x: *%08x %08x %08x %08x\n", pc, read32(pc), read32(pc+4), read32(pc+8), read32(pc+12));

@@ -22,7 +22,7 @@ Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 #include "types.h"
 #include "utils.h"
 #include "start.h"
-#include "hollywood.h"
+#include "../hollywood.h"
 #include "string.h"
 #include "elf.h"
 
@@ -57,12 +57,12 @@ void *loadelf(const u8 *elf) {
 
 static inline void disable_boot0()
 {
-	set32(HW_BOOT0, 0x1000);
+	set32(HW_SPARE1_BOOT0, 0x1000);
 }
 
 static inline void mem_setswap()
 {
-	set32(HW_MEMMIRR, 0x20);
+	set32(HW_MEMMIRR, SRAM_MIRROR);
 }
 
 void *_main(void *base)

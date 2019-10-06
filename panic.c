@@ -29,12 +29,14 @@ void panic2(int mode, ...)
 	clear32(HW_GPIO1DIR, HW_GPIO1_SLOT);
 	clear32(HW_GPIO1OWNER, HW_GPIO1_SLOT);
 
-	while(1) {
+	while (1)
+	{
 		va_start(ap, mode);
 		
-		while(1) {
+		while (1)
+		{
 			arg = va_arg(ap, int);
-			if(arg < 0)
+			if (arg < 0)
 				break;
 			set32(HW_GPIO1OUT, HW_GPIO1_SLOT);
 			udelay(arg * PANIC_ON);

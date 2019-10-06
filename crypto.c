@@ -29,8 +29,9 @@ void crypto_read_otp(void)
 {
 	u32 *otpd = (u32*)&otp;
 	int i;
-	for (i=0; i< 0x20; i++) {
-		write32(HW_OTPCMD,0x80000000|i);
+	for (i=0; i< 0x20; i++)
+	{
+		write32(HW_OTPCMD, 0x80000000 | i);
 		*otpd++ = read32(HW_OTPDATA);
 	}
 }
@@ -52,17 +53,17 @@ void crypto_initialize(void)
 void crypto_ipc(volatile ipc_request *req)
 {
 	switch (req->req) {
-		case IPC_KEYS_GETOTP:
-			memcpy((void *)req->args[0], &otp, sizeof(otp));
-			dc_flushrange((void *)req->args[0], sizeof(otp));
-			break;
-		case IPC_KEYS_GETEEP:
-			memcpy((void *)req->args[0], &seeprom, sizeof(seeprom));
-			dc_flushrange((void *)req->args[0], sizeof(seeprom));
-			break;
-		default:
-			gecko_printf("IPC: unknown SLOW CRYPTO request %04x\n",
-					req->req);
+	case IPC_KEYS_GETOTP:
+		memcpy((void *)req->args[0], &otp, sizeof(otp));
+		dc_flushrange((void *)req->args[0], sizeof(otp));
+		break;
+	case IPC_KEYS_GETEEP:
+		memcpy((void *)req->args[0], &seeprom, sizeof(seeprom));
+		dc_flushrange((void *)req->args[0], sizeof(seeprom));
+		break;
+	default:
+		gecko_printf("IPC: unknown SLOW CRYPTO request %04x\n",
+				req->req);
 	}
 	ipc_post(req->code, req->tag, 0);
 }
@@ -80,7 +81,7 @@ static inline void aes_command(u16 cmd, u8 iv_keep, u32 blocks)
 	if (blocks != 0)
 		blocks--;
 	_aes_irq = 0;
-	write32(AES_CMD, (cmd << 16) | (iv_keep ? 0x1000 : 0) | (blocks&0x7f));
+	write32(AES_CMD, (cmd << 16) | (iv_keep ? 0x1000 : 0) | (blocks & 0x7f));
 	while (read32(AES_CMD) & 0x80000000);
 }
 
@@ -93,7 +94,8 @@ void aes_reset(void)
 void aes_set_iv(u8 *iv)
 {
 	int i;
-	for(i = 0; i < 4; i++) {
+	for(i = 0; i < 4; i++)
+	{
 		write32(AES_IV, *(u32 *)iv);
 		iv += 4;
 	}
@@ -109,7 +111,8 @@ void aes_empty_iv(void)
 void aes_set_key(u8 *key)
 {
 	int i;
-	for(i = 0; i < 4; i++) {
+	for(i = 0; i < 4; i++)
+	{
 		write32(AES_KEY, *(u32 *)key);
 		key += 4;
 	}
@@ -118,7 +121,8 @@ void aes_set_key(u8 *key)
 void aes_decrypt(u8 *src, u8 *dst, u32 blocks, u8 keep_iv)
 {
 	int this_blocks = 0;
-	while(blocks > 0) {
+	while (blocks > 0)
+	{
 		this_blocks = blocks;
 		if (this_blocks > 0x80)
 			this_blocks = 0x80;
@@ -145,22 +149,22 @@ void aes_decrypt(u8 *src, u8 *dst, u32 blocks, u8 keep_iv)
 void aes_ipc(volatile ipc_request *req)
 {
 	switch (req->req) {
-		case IPC_AES_RESET:
-			aes_reset();
-			break;
-		case IPC_AES_SETIV:
-			aes_set_iv((u8 *)req->args);
-			break;
-		case IPC_AES_SETKEY:
-			aes_set_key((u8 *)req->args);
-			break;
-		case IPC_AES_DECRYPT:
-			aes_decrypt((u8 *)req->args[0], (u8 *)req->args[1],
-				    req->args[2], req->args[3]);
-			break;
-		default:
-			gecko_printf("IPC: unknown SLOW AES request %04x\n",
-					req->req);
+	case IPC_AES_RESET:
+		aes_reset();
+		break;
+	case IPC_AES_SETIV:
+		aes_set_iv((u8 *)req->args);
+		break;
+	case IPC_AES_SETKEY:
+		aes_set_key((u8 *)req->args);
+		break;
+	case IPC_AES_DECRYPT:
+		aes_decrypt((u8 *)req->args[0], (u8 *)req->args[1],
+			    req->args[2], req->args[3]);
+		break;
+	default:
+		gecko_printf("IPC: unknown SLOW AES request %04x\n",
+				req->req);
 	}
 	ipc_post(req->code, req->tag, 0);
 }

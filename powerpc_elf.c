@@ -29,17 +29,17 @@ extern u8 __mem2_area_start[];
 
 #define PHDR_MAX 10
 
-static int _check_physaddr(u32 addr) {
+static int _check_physaddr(u32 addr)
+{
 	if ((addr >= PPC_MEM2_START) && (addr <= PPC_MEM2_END))
 		return 2;
-
 	if (addr < PPC_MEM1_END)
 		return 1;
-
 	return -1;
 }
 
-static int _check_physrange(u32 addr, u32 len) {
+static int _check_physrange(u32 addr, u32 len)
+{
 	switch (_check_physaddr(addr)) {
 	case 1:
 		if ((addr + len) < PPC_MEM1_END)
@@ -75,22 +75,26 @@ int powerpc_boot_file(const char *path)
 	if (read != sizeof(elfhdr))
 		return -100;
 
-	if (memcmp("\x7F" "ELF\x01\x02\x01\x00\x00",elfhdr.e_ident,9)) {
+	if (memcmp("\x7F" "ELF\x01\x02\x01\x00\x00",elfhdr.e_ident,9))
+	{
 		gecko_printf("Invalid ELF header! 0x%02x 0x%02x 0x%02x 0x%02x\n",elfhdr.e_ident[0], elfhdr.e_ident[1], elfhdr.e_ident[2], elfhdr.e_ident[3]);
 		return -101;
 	}
 
-	if (_check_physaddr(elfhdr.e_entry) < 0) {
+	if (_check_physaddr(elfhdr.e_entry) < 0)
+	{
 		gecko_printf("Invalid entry point! 0x%08x\n", elfhdr.e_entry);
 		return -102;
 	}
 
-	if (elfhdr.e_phoff == 0 || elfhdr.e_phnum == 0) {
+	if (elfhdr.e_phoff == 0 || elfhdr.e_phnum == 0)
+	{
 		gecko_printf("ELF has no program headers!\n");
 		return -103;
 	}
 
-	if (elfhdr.e_phnum > PHDR_MAX) {
+	if (elfhdr.e_phnum > PHDR_MAX)
+	{
 		gecko_printf("ELF has too many (%d) program headers!\n", elfhdr.e_phnum);
 		return -104;
 	}
@@ -111,11 +115,16 @@ int powerpc_boot_file(const char *path)
 
 	powerpc_hang();
 
-	while (count--) {
-		if (phdr->p_type != PT_LOAD) {
+	while (count--)
+	{
+		if (phdr->p_type != PT_LOAD)
+		{
 			gecko_printf("Skipping PHDR of type %d\n", phdr->p_type);
-		} else {
-			if (_check_physrange(phdr->p_paddr, phdr->p_memsz) < 0) {
+		}
+		else
+		{
+			if (_check_physrange(phdr->p_paddr, phdr->p_memsz) < 0)
+			{
 				gecko_printf("PHDR out of bounds [0x%08x...0x%08x]\n",
 								phdr->p_paddr, phdr->p_paddr + phdr->p_memsz);
 				return -106;
@@ -153,24 +162,28 @@ int powerpc_boot_mem(const u8 *addr, u32 len)
 
 	Elf32_Ehdr *ehdr = (Elf32_Ehdr *) addr;
 
-	if (memcmp("\x7F" "ELF\x01\x02\x01\x00\x00", ehdr->e_ident, 9)) {
+	if (memcmp("\x7F" "ELF\x01\x02\x01\x00\x00", ehdr->e_ident, 9))
+	{
 		gecko_printf("Invalid ELF header! 0x%02x 0x%02x 0x%02x 0x%02x\n",
 						ehdr->e_ident[0], ehdr->e_ident[1],
 						ehdr->e_ident[2], ehdr->e_ident[3]);
 		return -101;
 	}
 
-	if (_check_physaddr(ehdr->e_entry) < 0) {
+	if (_check_physaddr(ehdr->e_entry) < 0)
+	{
 		gecko_printf("Invalid entry point! 0x%08x\n", ehdr->e_entry);
 		return -102;
 	}
 
-	if (ehdr->e_phoff == 0 || ehdr->e_phnum == 0) {
+	if (ehdr->e_phoff == 0 || ehdr->e_phnum == 0)
+	{
 		gecko_printf("ELF has no program headers!\n");
 		return -103;
 	}
 
-	if (ehdr->e_phnum > PHDR_MAX) {
+	if (ehdr->e_phnum > PHDR_MAX)
+	{
 		gecko_printf("ELF has too many (%d) program headers!\n",
 						ehdr->e_phnum);
 		return -104;
@@ -187,11 +200,16 @@ int powerpc_boot_mem(const u8 *addr, u32 len)
 
 	powerpc_hang();
 
-	while (count--) {
-		if (phdr->p_type != PT_LOAD) {
+	while (count--)
+	{
+		if (phdr->p_type != PT_LOAD)
+		{
 			gecko_printf("Skipping PHDR of type %d\n", phdr->p_type);
-		} else {
-			if (_check_physrange(phdr->p_paddr, phdr->p_memsz) < 0) {
+		}
+		else
+		{
+			if (_check_physrange(phdr->p_paddr, phdr->p_memsz) < 0)
+			{
 				gecko_printf("PHDR out of bounds [0x%08x...0x%08x]\n",
 								phdr->p_paddr, phdr->p_paddr + phdr->p_memsz);
 				return -106;

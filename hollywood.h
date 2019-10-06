@@ -14,35 +14,52 @@ Copyright (C) 2008, 2009	John Kelley <wiidev@kelley.ca>
 #ifndef __HOLLYWOOD_H__
 #define __HOLLYWOOD_H__
 
-/* Hollywood Registers */
+/* ----------------------------------------------------------------------------
+ * Hollywood register space */
+#define		HW_REG_BASE		0x0d800000
 
-#define		HW_PPC_REG_BASE		0xd000000
-#define		HW_REG_BASE		0xd800000
+// ----------------------------
+// IPC registers
 
 // The PPC can only see the first three IPC registers
 #define		HW_IPC_PPCMSG		(HW_REG_BASE + 0x000)
 #define		HW_IPC_PPCCTRL		(HW_REG_BASE + 0x004)
 #define		HW_IPC_ARMMSG		(HW_REG_BASE + 0x008)
 #define		HW_IPC_ARMCTRL		(HW_REG_BASE + 0x00c)
+#define		  IPC_CTRL_Y1		0x01
+#define		  IPC_CTRL_X2		0x02
+#define		  IPC_CTRL_X1		0x04
+#define		  IPC_CTRL_Y2		0x08
+#define		  IPC_CTRL_IX1		0x10
+#define		  IPC_CTRL_IX2		0x20
+
+// ----------------------------
+// Timer registers
 
 #define		HW_TIMER		(HW_REG_BASE + 0x010)
 #define		HW_ALARM		(HW_REG_BASE + 0x014)
 
+// ----------------------------
+// Interrupt management registers
+
 #define		HW_PPCIRQFLAG		(HW_REG_BASE + 0x030)
 #define		HW_PPCIRQMASK		(HW_REG_BASE + 0x034)
-
 #define		HW_ARMIRQFLAG		(HW_REG_BASE + 0x038)
 #define		HW_ARMIRQMASK		(HW_REG_BASE + 0x03c)
 
+// ----------------------------
+// Protection control registers
+
 #define		HW_MEMMIRR		(HW_REG_BASE + 0x060)
+#define		  SRAM_MIRROR		0x20
 #define		HW_AHBPROT		(HW_REG_BASE + 0x064)
 
-// something to do with PPCBOOT
-// and legacy DI it seems ?!?
 #define		HW_EXICTRL		(HW_REG_BASE + 0x070)
-#define		EXICTRL_ENABLE_EXI	1
+#define		  EXICTRL_ENABLE_EXI	1
 
-// PPC side of GPIO1 (Starlet can access this too)
+// ----------------------------
+// PowerPC GPIO registers
+
 // Output state
 #define		HW_GPIO1BOUT		(HW_REG_BASE + 0x0c0)
 // Direction (1=output)
@@ -60,12 +77,13 @@ Copyright (C) 2008, 2009	John Kelley <wiidev@kelley.ca>
 #define		HW_GPIO1BINMIR		(HW_REG_BASE + 0x0d8)
 // 0xFFFFFF by default, if cleared disables respective outputs. Top bits non-settable.
 #define		HW_GPIO1ENABLE		(HW_REG_BASE + 0x0dc)
+#define		  HW_GPIO1_SLOT		0x000020
+#define		  HW_GPIO1_DEBUG	0xFF0000
+#define		  HW_GPIO1_DEBUG_SH	16
 
-#define		HW_GPIO1_SLOT		0x000020
-#define		HW_GPIO1_DEBUG		0xFF0000
-#define		HW_GPIO1_DEBUG_SH	16
+// ----------------------------
+// ARM GPIO registers
 
-// Starlet side of GPIO1
 // Output state
 #define		HW_GPIO1OUT		(HW_REG_BASE + 0x0e0)
 // Direction (1=output)
@@ -83,26 +101,52 @@ Copyright (C) 2008, 2009	John Kelley <wiidev@kelley.ca>
 // Owner of each GPIO bit. If 1, GPIO1B registers assume control. If 0, GPIO1 registers assume control.
 #define		HW_GPIO1OWNER		(HW_REG_BASE + 0x0fc)
 
-// ????
-#define		HW_DIFLAGS		(HW_REG_BASE + 0x180)
-#define		DIFLAGS_BOOT_CODE	0x100000
 
-// maybe a GPIO???
+// ----------------------------
+// AHB registers?
+
+#define		HW_ARB_CFG_M0		(HW_REG_BASE + 0x100)
+#define		HW_ARB_CFG_M1		(HW_REG_BASE + 0x104)
+#define		HW_ARB_CFG_M2		(HW_REG_BASE + 0x108)
+#define		HW_ARB_CFG_M3		(HW_REG_BASE + 0x10c)
+#define		HW_ARB_CFG_M4		(HW_REG_BASE + 0x110)
+#define		HW_ARB_CFG_M5		(HW_REG_BASE + 0x114)
+#define		HW_ARB_CFG_M6		(HW_REG_BASE + 0x118)
+#define		HW_ARB_CFG_M7		(HW_REG_BASE + 0x11c)
+#define		HW_ARB_CFG_M8		(HW_REG_BASE + 0x120)
+#define		HW_ARB_CFG_M9		(HW_REG_BASE + 0x124)
+#define		HW_ARB_CFG_MC		(HW_REG_BASE + 0x130)
+#define		HW_ARB_CFG_MD		(HW_REG_BASE + 0x134)
+#define		HW_ARB_CFG_ME		(HW_REG_BASE + 0x138)
+
+// ----------------------------
+// Unknown
+
+#define		HW_DIFLAGS		(HW_REG_BASE + 0x180)
+#define		  DIFLAGS_BOOT_CODE	0x100000
+
+#define		HW_SPARE0		(HW_REG_BASE + 0x188)
+#define		HW_SPARE1_BOOT0		(HW_REG_BASE + 0x18c)
 #define		HW_RESETS		(HW_REG_BASE + 0x194)
 
+// ----------------------------
+// Clocking registers
 #define		HW_CLOCKS		(HW_REG_BASE + 0x1b4)
 
-#define		HW_GPIO2OUT		(HW_REG_BASE + 0x1c8)
-#define		HW_GPIO2DIR		(HW_REG_BASE + 0x1cc)
-#define		HW_GPIO2IN		(HW_REG_BASE + 0x1d0)
 
+// ----------------------------
+// OTP registers
 #define		HW_OTPCMD		(HW_REG_BASE + 0x1ec)
 #define		HW_OTPDATA		(HW_REG_BASE + 0x1f0)
+
+// ----------------------------
+// Other registers
 #define		HW_VERSION		(HW_REG_BASE + 0x214)
 
-/* NAND Registers */
 
-#define		NAND_REG_BASE		0xd010000
+/* ----------------------------------------------------------------------------
+ * NAND register space */
+#define		NAND_REG_BASE		0x0d010000
 
 #define		NAND_CMD		(NAND_REG_BASE + 0x000)
 #define		NAND_STATUS		NAND_CMD
@@ -114,9 +158,10 @@ Copyright (C) 2008, 2009	John Kelley <wiidev@kelley.ca>
 #define		NAND_UNK1		(NAND_REG_BASE + 0x018)
 #define		NAND_UNK2		(NAND_REG_BASE + 0x01c)
 
-/* AES Registers */
 
-#define		AES_REG_BASE		0xd020000
+/* ----------------------------------------------------------------------------
+ * AES engine register space */
+#define		AES_REG_BASE		0x0d020000
 
 #define		AES_CMD			(AES_REG_BASE + 0x000)
 #define		AES_SRC			(AES_REG_BASE + 0x004)
@@ -124,9 +169,10 @@ Copyright (C) 2008, 2009	John Kelley <wiidev@kelley.ca>
 #define		AES_KEY			(AES_REG_BASE + 0x00c)
 #define		AES_IV			(AES_REG_BASE + 0x010)
 
-/* SHA-1 Registers */
 
-#define		SHA_REG_BASE		0xd030000
+/* ----------------------------------------------------------------------------
+ * SHA-1 engine register space */
+#define		SHA_REG_BASE		0x0d030000
 
 #define		SHA_CMD			(SHA_REG_BASE + 0x000)
 #define		SHA_SRC			(SHA_REG_BASE + 0x004)
@@ -136,13 +182,16 @@ Copyright (C) 2008, 2009	John Kelley <wiidev@kelley.ca>
 #define		SHA_H3			(SHA_REG_BASE + 0x014)
 #define		SHA_H4			(SHA_REG_BASE + 0x018)
 
-/* SD Host Controller Registers */
 
-#define		SDHC_REG_BASE		0xd070000
+/* ----------------------------------------------------------------------------
+ * SDHC (SD host controller) register space */
+#define		SDHC_REG_BASE		0x0d070000
 
-/* EXI Registers */
 
-#define		EXI_REG_BASE		0xd806800
+/* ----------------------------------------------------------------------------
+ * EXI register space */
+#define		EXI_REG_BASE		0x0d806800
+
 #define		EXI0_REG_BASE		(EXI_REG_BASE+0x000)
 #define		EXI1_REG_BASE		(EXI_REG_BASE+0x014)
 #define		EXI2_REG_BASE		(EXI_REG_BASE+0x028)
@@ -167,13 +216,16 @@ Copyright (C) 2008, 2009	John Kelley <wiidev@kelley.ca>
 
 #define		EXI_BOOT_BASE		(EXI_REG_BASE+0x040)
 
-/* MEMORY CONTROLLER Registers */
 
-#define		MEM_REG_BASE		0xd8b4000
+/* ----------------------------------------------------------------------------
+ * Memory controller register space */
+#define		MEM_REG_BASE		0x0d8b4000
+
 #define		MEM_PROT		(MEM_REG_BASE+0x20a)
 #define		MEM_PROT_START		(MEM_REG_BASE+0x20c)
 #define		MEM_PROT_END		(MEM_REG_BASE+0x20e)
 #define		MEM_FLUSHREQ		(MEM_REG_BASE+0x228)
 #define		MEM_FLUSHACK		(MEM_REG_BASE+0x22a)
+
 
 #endif

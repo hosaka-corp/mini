@@ -39,17 +39,6 @@ static volatile ipc_request slow_queue[IPC_SLOW_SIZE];
 extern char __mem2_area_start[];
 extern const char git_version[];
 
-// These defines are for the ARMCTRL regs
-// See http://wiibrew.org/wiki/Hardware/IPC
-
-#define		IPC_CTRL_Y1	0x01
-#define		IPC_CTRL_X2	0x02
-#define		IPC_CTRL_X1	0x04
-#define		IPC_CTRL_Y2	0x08
-
-#define		IPC_CTRL_IX1	0x10
-#define		IPC_CTRL_IX2	0x20
-
 // Our definitions for this IPC interface
 #define		IPC_CTRL_OUT	IPC_CTRL_Y1
 #define		IPC_CTRL_IN	IPC_CTRL_X1
@@ -100,15 +89,18 @@ void ipc_post(u32 code, u32 tag, u32 num_args, ...)
 	va_list ap;
 	u32 cookie = irq_kill();
 
-	if(peek_outhead() == ((out_tail + 1)&(IPC_OUT_SIZE-1))) {
+	if (peek_outhead() == ((out_tail + 1)&(IPC_OUT_SIZE-1)))
+	{
 		gecko_printf("IPC: out queue full, PPC slow/dead/flooded\n");
-		while(peek_outhead() == ((out_tail + 1)&(IPC_OUT_SIZE-1)));
+		while (peek_outhead() == ((out_tail + 1)&(IPC_OUT_SIZE-1)));
 	}
 	out_queue[out_tail].code = code;
 	out_queue[out_tail].tag = tag;
-	if(num_args) {
+	if (num_args)
+	{
 		va_start(ap, num_args);
-		while(num_args--) {
+		while (num_args--)
+		{
 			out_queue[out_tail].args[arg++] = va_arg(ap, u32);
 		}
 		va_end(ap);
@@ -123,7 +115,7 @@ void ipc_post(u32 code, u32 tag, u32 num_args, ...)
 
 void ipc_flush(void)
 {
-	while(peek_outhead() != out_tail);
+	while (peek_outhead() != out_tail);
 }
 
 static u32 process_slow(volatile ipc_request *req)
@@ -134,48 +126,49 @@ static u32 process_slow(volatile ipc_request *req)
 	//	req->args[0], req->args[1], req->args[2], req->args[3], req->args[4], req->args[5]);
 
 	switch(req->device) {
-		case IPC_DEV_SYS:
-			switch(req->req) {
-				case IPC_SYS_PING: //PING can be both slow and fast for testing purposes
-					ipc_post(req->code, req->tag, 0);
-					break;
-				case IPC_SYS_JUMP:
-					return req->args[0];
-				case IPC_SYS_GETVERS:
-					ipc_post(req->code, req->tag, 1, MINI_VERSION_MAJOR << 16 | MINI_VERSION_MINOR);
-					break;
-				case IPC_SYS_GETGITS:
-					strlcpy((char *)req->args[0], git_version, 32);
-					dc_flushrange((void *)req->args[0], 32);
-					ipc_post(req->code, req->tag, 0);
-					break;
-				default:
-					gecko_printf("IPC: unknown SLOW SYS request %04x\n", req->req);
-			}
+	case IPC_DEV_SYS:
+		switch(req->req) {
+		//PING can be both slow and fast for testing purposes
+		case IPC_SYS_PING:
+			ipc_post(req->code, req->tag, 0);
 			break;
-		case IPC_DEV_NAND:
-			nand_ipc(req);
+		case IPC_SYS_JUMP:
+			return req->args[0];
+		case IPC_SYS_GETVERS:
+			ipc_post(req->code, req->tag, 1, MINI_VERSION_MAJOR << 16 | MINI_VERSION_MINOR);
 			break;
-		case IPC_DEV_SDHC:
-			sdhc_ipc(req);
-			break;
-		case IPC_DEV_SDMMC:
-			sdmmc_ipc(req);
-			break;
-		case IPC_DEV_KEYS:
-			crypto_ipc(req);
-			break;
-		case IPC_DEV_AES:
-			aes_ipc(req);
-			break;
-		case IPC_DEV_BOOT2:
-			return boot2_ipc(req);
-			break;
-		case IPC_DEV_PPC:
-			powerpc_ipc(req);
+		case IPC_SYS_GETGITS:
+			strlcpy((char *)req->args[0], git_version, 32);
+			dc_flushrange((void *)req->args[0], 32);
+			ipc_post(req->code, req->tag, 0);
 			break;
 		default:
-			gecko_printf("IPC: unknown SLOW request %02x-%04x\n", req->device, req->req);
+			gecko_printf("IPC: unknown SLOW SYS request %04x\n", req->req);
+		}
+		break;
+	case IPC_DEV_NAND:
+		nand_ipc(req);
+		break;
+	case IPC_DEV_SDHC:
+		sdhc_ipc(req);
+		break;
+	case IPC_DEV_SDMMC:
+		sdmmc_ipc(req);
+		break;
+	case IPC_DEV_KEYS:
+		crypto_ipc(req);
+		break;
+	case IPC_DEV_AES:
+		aes_ipc(req);
+		break;
+	case IPC_DEV_BOOT2:
+		return boot2_ipc(req);
+		break;
+	case IPC_DEV_PPC:
+		powerpc_ipc(req);
+		break;
+	default:
+		gecko_printf("IPC: unknown SLOW request %02x-%04x\n", req->device, req->req);
 	}
 
 	return 0;
@@ -186,7 +179,8 @@ void ipc_enqueue_slow(u8 device, u16 req, u32 num_args, ...)
 	int arg = 0;
 	va_list ap;
 
-	if(slow_queue_head == ((slow_queue_tail + 1)&(IPC_SLOW_SIZE-1))) {
+	if (slow_queue_head == ((slow_queue_tail + 1)&(IPC_SLOW_SIZE-1)))
+	{
 		gecko_printf("IPC: Slowqueue overrun\n");
 		panic2(0, PANIC_IPCOVF);
 	}
@@ -196,9 +190,10 @@ void ipc_enqueue_slow(u8 device, u16 req, u32 num_args, ...)
 	slow_queue[slow_queue_tail].req = req;
 	slow_queue[slow_queue_tail].tag = 0;
 
-	if(num_args) {
+	if (num_args)
+	{
 		va_start(ap, num_args);
-		while(num_args--)
+		while (num_args--)
 			slow_queue[slow_queue_tail].args[arg++] = va_arg(ap, u32);
 		va_end(ap);
 	}
@@ -217,70 +212,74 @@ static void process_in(void)
 	//gecko_printf("IPC: req %08x %08x [%08x %08x %08x %08x %08x %08x]\n", req->code, req->tag,
 	//	req->args[0], req->args[1], req->args[2], req->args[3], req->args[4], req->args[5]);
 
-	if(req->flags & IPC_FAST) {
+	if (req->flags & IPC_FAST)
+	{
 		switch(req->device) {
-			case IPC_DEV_SYS:
-				// handle fast SYS requests here
-				switch(req->req) {
-					case IPC_SYS_PING:
-						ipc_post(req->code, req->tag, 0);
-						break;
-					case IPC_SYS_WRITE32:
-						write32(req->args[0], req->args[1]);
-						break;
-					case IPC_SYS_WRITE16:
-						write16(req->args[0], req->args[1]);
-						break;
-					case IPC_SYS_WRITE8:
-						write8(req->args[0], req->args[1]);
-						break;
-					case IPC_SYS_READ32:
-						ipc_post(req->code, req->tag, 1, read32(req->args[0]));
-						break;
-					case IPC_SYS_READ16:
-						ipc_post(req->code, req->tag, 1, read16(req->args[0]));
-						break;
-					case IPC_SYS_READ8:
-						ipc_post(req->code, req->tag, 1, read8(req->args[0]));
-						break;
-					case IPC_SYS_SET32:
-						set32(req->args[0], req->args[1]);
-						break;
-					case IPC_SYS_SET16:
-						set16(req->args[0], req->args[1]);
-						break;
-					case IPC_SYS_SET8:
-						set8(req->args[0], req->args[1]);
-						break;
-					case IPC_SYS_CLEAR32:
-						clear32(req->args[0], req->args[1]);
-						break;
-					case IPC_SYS_CLEAR16:
-						clear16(req->args[0], req->args[1]);
-						break;
-					case IPC_SYS_CLEAR8:
-						clear8(req->args[0], req->args[1]);
-						break;
-					case IPC_SYS_MASK32:
-						mask32(req->args[0], req->args[1], req->args[2]);
-						break;
-					case IPC_SYS_MASK16:
-						mask16(req->args[0], req->args[1], req->args[2]);
-						break;
-					case IPC_SYS_MASK8:
-						mask8(req->args[0], req->args[1], req->args[2]);
-						break;
-					default:
-						gecko_printf("IPC: unknown FAST SYS request %04x\n", req->req);
-						break;
-				}
+		case IPC_DEV_SYS:
+			// handle fast SYS requests here
+			switch(req->req) {
+			case IPC_SYS_PING:
+				ipc_post(req->code, req->tag, 0);
+				break;
+			case IPC_SYS_WRITE32:
+				write32(req->args[0], req->args[1]);
+				break;
+			case IPC_SYS_WRITE16:
+				write16(req->args[0], req->args[1]);
+				break;
+			case IPC_SYS_WRITE8:
+				write8(req->args[0], req->args[1]);
+				break;
+			case IPC_SYS_READ32:
+				ipc_post(req->code, req->tag, 1, read32(req->args[0]));
+				break;
+			case IPC_SYS_READ16:
+				ipc_post(req->code, req->tag, 1, read16(req->args[0]));
+				break;
+			case IPC_SYS_READ8:
+				ipc_post(req->code, req->tag, 1, read8(req->args[0]));
+				break;
+			case IPC_SYS_SET32:
+				set32(req->args[0], req->args[1]);
+				break;
+			case IPC_SYS_SET16:
+				set16(req->args[0], req->args[1]);
+				break;
+			case IPC_SYS_SET8:
+				set8(req->args[0], req->args[1]);
+				break;
+			case IPC_SYS_CLEAR32:
+				clear32(req->args[0], req->args[1]);
+				break;
+			case IPC_SYS_CLEAR16:
+				clear16(req->args[0], req->args[1]);
+				break;
+			case IPC_SYS_CLEAR8:
+				clear8(req->args[0], req->args[1]);
+				break;
+			case IPC_SYS_MASK32:
+				mask32(req->args[0], req->args[1], req->args[2]);
+				break;
+			case IPC_SYS_MASK16:
+				mask16(req->args[0], req->args[1], req->args[2]);
+				break;
+			case IPC_SYS_MASK8:
+				mask8(req->args[0], req->args[1], req->args[2]);
 				break;
 			default:
-				gecko_printf("IPC: unknown FAST request %02x-%04x\n", req->device, req->req);
+				gecko_printf("IPC: unknown FAST SYS request %04x\n", req->req);
 				break;
+			}
+				break;
+		default:
+			gecko_printf("IPC: unknown FAST request %02x-%04x\n", req->device, req->req);
+			break;
 		}
-	} else {
-		if(slow_queue_head == ((slow_queue_tail + 1)&(IPC_SLOW_SIZE-1))) {
+	}
+	else
+	{
+		if (slow_queue_head == ((slow_queue_tail + 1)&(IPC_SLOW_SIZE-1)))
+		{
 			gecko_printf("IPC: Slowqueue overrun\n");
 			panic2(0, PANIC_IPCOVF);
 		}
@@ -293,16 +292,18 @@ static void process_in(void)
 void ipc_irq(void)
 {
 	int donebell = 0;
-	while(read32(HW_IPC_ARMCTRL) & IPC_CTRL_IN) {
+	while (read32(HW_IPC_ARMCTRL) & IPC_CTRL_IN)
+	{
 		write32(HW_IPC_ARMCTRL, IPC_CTRL_IRQ_IN | IPC_CTRL_IN);
-		while(peek_intail() != in_head) {
+		while (peek_intail() != in_head)
+		{
 			process_in();
 			in_head = (in_head+1)&(IPC_IN_SIZE-1);
 			poke_inhead(in_head);
 		}
 		donebell++;
 	}
-	if(!donebell)
+	if (!donebell)
 		gecko_printf("IPC: IRQ but no bell!\n");
 }
 
@@ -335,8 +336,10 @@ u32 ipc_process_slow(void)
 {
 	u32 vector = 0;
 
-	while (!vector) {
-		while (!vector && (slow_queue_head != slow_queue_tail)) {
+	while (!vector)
+	{
+		while (!vector && (slow_queue_head != slow_queue_tail))
+		{
 			vector = process_slow(&slow_queue[slow_queue_head]);
 			slow_queue_head = (slow_queue_head+1)&(IPC_SLOW_SIZE-1);
 		}
@@ -346,7 +349,7 @@ u32 ipc_process_slow(void)
 			gecko_process();
 
 			u32 cookie = irq_kill();
-			if(slow_queue_head == slow_queue_tail)
+			if (slow_queue_head == slow_queue_tail)
 				irq_wait();
 			irq_restore(cookie);
 		}

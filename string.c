@@ -102,7 +102,7 @@ size_t strlcat(char *dest, const char *src, size_t maxlen)
 {
 	size_t used;
 
-    used = strnlen(dest, maxlen-1);
+	used = strnlen(dest, maxlen-1);
 	return used + strlcpy(dest + used, src, maxlen - used);
 }
 
@@ -121,17 +121,17 @@ size_t strspn(const char *s1, const char *s2)
 	size_t len = 0;
 	const char *p;
 
-	while (s1[len]) {
+	while (s1[len])
+	{
 		p = s2;
-		while (*p) {
+		while (*p)
+		{
 			if (s1[len] == *p)
 				break;
 
 			++p;
 		}
-		if (!*p)
-			return len;
-
+		if (!*p) return len;
 		++len;
 	}
 
@@ -143,11 +143,11 @@ size_t strcspn(const char *s1, const char *s2)
 	size_t len = 0;
 	const char *p;
 
-	while (s1[len]) {
+	while (s1[len])
+	{
 		p = s2;
 		while (*p)
-			if (s1[len] == *p++)
-				return len;
+			if (s1[len] == *p++) return len;
 
 		++len;
 	}

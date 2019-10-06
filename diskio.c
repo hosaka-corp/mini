@@ -20,7 +20,8 @@ Copyright (C) 2008, 2009	Haxx Enterprises <bushing@gmail.com>
 static u8 buffer[512] MEM2_BSS ALIGNED(32);
 
 // Initialize a Drive
-DSTATUS disk_initialize (BYTE drv) {
+DSTATUS disk_initialize (BYTE drv)
+{
 	if (sdmmc_check_card() == SDMMC_NO_CARD)
 		return STA_NOINIT;
 
@@ -29,7 +30,8 @@ DSTATUS disk_initialize (BYTE drv) {
 }
 
 // Return Disk Status
-DSTATUS disk_status (BYTE drv) {
+DSTATUS disk_status (BYTE drv)
+{
 	(void)drv;
 	if (sdmmc_check_card() == SDMMC_INSERTED)
 		return 0;
@@ -38,36 +40,38 @@ DSTATUS disk_status (BYTE drv) {
 }
 
 // Read Sector(s)
-DRESULT disk_read (BYTE drv, BYTE *buff, DWORD sector, BYTE count) {
+DRESULT disk_read (BYTE drv, BYTE *buff, DWORD sector, BYTE count)
+{
 	int i;
 	(void)drv;
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		if (sdmmc_read(sector+i, 1, buffer) != 0)
 			return RES_ERROR;
 		memcpy(buff + i * 512, buffer, 512);
 	}
-
 	return RES_OK;
 }
 
 // Write Sector(s)
 #if _READONLY == 0
-DRESULT disk_write (BYTE drv, const BYTE *buff, DWORD sector, BYTE count) {
+DRESULT disk_write (BYTE drv, const BYTE *buff, DWORD sector, BYTE count)
+{
 	int i;
 
-	for (i = 0; i < count; i++) {
+	for (i = 0; i < count; i++)
+	{
 		memcpy(buffer, buff + i * 512, 512);
-
-		if(sdmmc_write(sector + i, 1, buffer) != 0)
+		if (sdmmc_write(sector + i, 1, buffer) != 0)
 			return RES_ERROR;
 	}
-
 	return RES_OK;
 }
 #endif /* _READONLY */
 
 #if _USE_IOCTL == 1
-DRESULT disk_ioctl (BYTE drv, BYTE ctrl, void *buff) {
+DRESULT disk_ioctl (BYTE drv, BYTE ctrl, void *buff)
+{
 	if (ctrl == CTRL_SYNC)
 		return RES_OK;
 

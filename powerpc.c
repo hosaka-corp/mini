@@ -72,12 +72,16 @@ void powerpc_reset(void)
 
 void powerpc_ipc(volatile ipc_request *req)
 {
-	switch (req->req) {
+	switch (req->req)
+	{
 	case IPC_PPC_BOOT:
-		if (req->args[0]) {
+		if (req->args[0])
+		{
 			// Enqueued from ARM side, do not invalidate mem nor ipc_post
 			powerpc_boot_mem((u8 *) req->args[1], req->args[2]);
-		} else {
+		}
+		else
+		{
 			dc_invalidaterange((void *) req->args[1], req->args[2]);
 			int res = powerpc_boot_mem((u8 *) req->args[1], req->args[2]);
 			if (res)
@@ -87,12 +91,15 @@ void powerpc_ipc(volatile ipc_request *req)
 		break;
 
 	case IPC_PPC_BOOT_FILE:
-		if (req->args[0]) {
+		if (req->args[0])
+		{
 			// Enqueued from ARM side, do not invalidate mem nor ipc_post
 			powerpc_boot_file((char *) req->args[1]);
-		} else {
+		}
+		else
+		{
 			dc_invalidaterange((void *) req->args[1],
-								strnlen((char *) req->args[1], 256));
+					strnlen((char *) req->args[1], 256));
 			int res = powerpc_boot_file((char *) req->args[1]);
 			if (res)
 				ipc_post(req->code, req->tag, 1, res);

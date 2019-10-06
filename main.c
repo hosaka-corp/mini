@@ -79,13 +79,15 @@ u32 _main(void *base)
 	gecko_printf("Mounting SD...\n");
 	fres = f_mount(0, &fatfs);
 
-	if (read32(0x0d800190) & 2) {
+	if (read32(0x0d800190) & 2)
+	{
 		gecko_printf("GameCube compatibility mode detected...\n");
 		vector = boot2_run(1, 0x101);
 		goto shutdown;
 	}
 
-	if(fres != FR_OK) {
+	if (fres != FR_OK)
+	{
 		gecko_printf("Error %d while trying to mount SD\n", fres);
 		panic2(0, PANIC_MOUNT);
 	}
@@ -93,7 +95,8 @@ u32 _main(void *base)
 	gecko_printf("Trying to boot:" PPC_BOOT_FILE "\n");
 
 	res = powerpc_boot_file(PPC_BOOT_FILE);
-	if(res < 0) {
+	if (res < 0)
+	{
 		gecko_printf("Failed to boot PPC: %d\n", res);
 		gecko_printf("Booting System Menu\n");
 		vector = boot2_run(1, 2);

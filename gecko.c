@@ -71,7 +71,8 @@ static u32 _gecko_recvbyte(u8 *recvbyte)
 	u32 i = 0;
 	*recvbyte = 0;
 	i = _gecko_command(0xA0000000);
-	if (i&0x08000000) {
+	if (i&0x08000000)
+	{
 		// Return 1 if byte was received
 		*recvbyte = (i>>16)&0xff;
 		return 1;
@@ -117,7 +118,7 @@ static int gecko_isalive(void)
 static void gecko_flush(void)
 {
 	u8 tmp;
-	while(_gecko_recvbyte(&tmp));
+	while (_gecko_recvbyte(&tmp));
 }
 
 #if 0
@@ -126,8 +127,8 @@ static int gecko_recvbuffer(void *buffer, u32 size)
 	u32 left = size;
 	char *ptr = (char*)buffer;
 
-	while(left>0) {
-		if(!_gecko_recvbyte(ptr))
+	while (left>0) {
+		if (!_gecko_recvbyte(ptr))
 			break;
 		ptr++;
 		left--;
@@ -142,10 +143,12 @@ static int gecko_sendbuffer(const void *buffer, u32 size)
 	u32 left = size;
 	char *ptr = (char*)buffer;
 
-	while(left>0) {
-		if(!_gecko_sendbyte(*ptr))
+	while (left>0)
+	{
+		if (!_gecko_sendbyte(*ptr))
 			break;
-		if(*ptr == '\n') {
+		if (*ptr == '\n')
+		{
 #ifdef GECKO_LFCR
 			_gecko_sendbyte('\r');
 #endif
@@ -164,9 +167,11 @@ static int gecko_recvbuffer_safe(void *buffer, u32 size)
 	u32 left = size;
 	char *ptr = (char*)buffer;
 	
-	while(left>0) {
-		if(_gecko_checkrecv()) {
-			if(!_gecko_recvbyte(ptr))
+	while (left>0)
+	{
+		if (_gecko_checkrecv())
+		{
+			if (!_gecko_recvbyte(ptr))
 				break;
 			ptr++;
 			left--;
@@ -182,14 +187,17 @@ static int gecko_sendbuffer_safe(const void *buffer, u32 size)
 	u32 left = size;
 	char *ptr = (char*)buffer;
 
-	if((read32(HW_EXICTRL) & EXICTRL_ENABLE_EXI) == 0)
+	if ((read32(HW_EXICTRL) & EXICTRL_ENABLE_EXI) == 0)
 		return left;
 	
-	while(left>0) {
-		if(_gecko_checksend()) {
-			if(!_gecko_sendbyte(*ptr))
+	while (left>0)
+	{
+		if (_gecko_checksend())
+		{
+			if (!_gecko_sendbyte(*ptr))
 				break;
-			if(*ptr == '\n') {
+			if (*ptr == '\n')
+			{
 #ifdef GECKO_LFCR
 				_gecko_sendbyte('\r');
 #endif
@@ -220,11 +228,15 @@ void gecko_init(void)
 
 u8 gecko_enable_console(const u8 enable)
 {
-	if (enable) {
+	if (enable)
+	{
 		if (gecko_isalive())
 			gecko_console_enabled = 1;
-	} else
+	}
+	else
+	{
 		gecko_console_enabled = 0;
+	}
 
 	return gecko_console_enabled;
 }
@@ -269,7 +281,8 @@ static u32 _gecko_receive_left = 0;
 static u32 _gecko_receive_len = 0;
 static u8 *_gecko_receive_buffer = NULL;
 
-void gecko_process(void) {
+void gecko_process(void)
+{
 	u8 b;
 
 	if (!gecko_found)
@@ -295,9 +308,7 @@ void gecko_process(void) {
 			_gecko_receive_buffer = (u8 *) 0x0; // yarly
 
 			_gecko_cmd_start_time = read32(HW_TIMER);
-
 			break;
-
 		case GECKO_CMD_BIN_PPC:
 			_gecko_state = GECKO_STATE_RECEIVE_BUFFER_SIZE;
 			_gecko_receive_len = 0;
@@ -305,7 +316,6 @@ void gecko_process(void) {
 			_gecko_receive_buffer = (u8 *) 0x10100000;
 
 			_gecko_cmd_start_time = read32(HW_TIMER);
-
 			break;
 		}
 
@@ -319,7 +329,8 @@ void gecko_process(void) {
 		_gecko_receive_len |= b;
 		_gecko_receive_left--;
 
-		if (!_gecko_receive_left) {
+		if (!_gecko_receive_left)
+		{
 			if (_gecko_receive_len > GECKO_BUFFER_MAX)
 				goto cleanup;
 
@@ -333,7 +344,8 @@ void gecko_process(void) {
 		return;
 
 	case GECKO_STATE_RECEIVE_BUFFER:
-		while (_gecko_receive_left) {
+		while (_gecko_receive_left)
+		{
 			if (!_gecko_checkrecv() || !_gecko_recvbyte(_gecko_receive_buffer))
 				return;
 
@@ -369,8 +381,8 @@ void gecko_process(void) {
 		break;
 
 	case GECKO_CMD_BIN_PPC:
-		ipc_enqueue_slow(IPC_DEV_PPC, IPC_PPC_BOOT, 3,
-							1, (u32) 0x10100000, _gecko_receive_len);
+		ipc_enqueue_slow(IPC_DEV_PPC, IPC_PPC_BOOT, 3, 1,
+			(u32) 0x10100000, _gecko_receive_len);
 		break;
 	}
 

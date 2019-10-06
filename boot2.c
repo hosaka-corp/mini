@@ -65,14 +65,16 @@ static u32 boot2_content_size;
 // find two equal valid blockmaps from a set of three, return one of them
 static int find_valid_map(const boot2blockmap *maps)
 {
-	if(maps[0].signature == BLOCKMAP_SIGNATURE) {
-		if(!memcmp(&maps[0],&maps[1],sizeof(boot2blockmap)))
+	if (maps[0].signature == BLOCKMAP_SIGNATURE)
+	{
+		if (!memcmp(&maps[0],&maps[1],sizeof(boot2blockmap)))
 			return 0;
-		if(!memcmp(&maps[0],&maps[2],sizeof(boot2blockmap)))
+		if (!memcmp(&maps[0],&maps[2],sizeof(boot2blockmap)))
 			return 0;
 	}
-	if(maps[1].signature == BLOCKMAP_SIGNATURE) {
-		if(!memcmp(&maps[1],&maps[2],sizeof(boot2blockmap)))
+	if (maps[1].signature == BLOCKMAP_SIGNATURE)
+	{
+		if (!memcmp(&maps[1],&maps[2],sizeof(boot2blockmap)))
 			return 1;
 	}
 	return -1;
@@ -90,16 +92,19 @@ static inline u32 boot2_page_translate(u32 page)
 // read boot2 up to the specified number of bytes (aligned to the next page)
 static int read_to(u32 bytes)
 {
-	if(bytes > (valid_blocks * BLOCK_SIZE * PAGE_SIZE)) {
+	if (bytes > (valid_blocks * BLOCK_SIZE * PAGE_SIZE))
+	{
 		gecko_printf("tried to read %d boot2 bytes (%d pages), but only %d blocks (%d pages) are valid!\n",
 			bytes, (bytes+(PAGE_SIZE-1)) / PAGE_SIZE, valid_blocks, valid_blocks * BLOCK_SIZE);
 		return -1;
 	}
-	while(bytes > ((u32)pages_read * PAGE_SIZE)) {
+	while (bytes > ((u32)pages_read * PAGE_SIZE))
+	{
 		u32 page = boot2_page_translate(pages_read);
 		nand_read_page(page, page_ptr, ecc_buf);
 		nand_wait();
-		if(nand_correct(page, page_ptr, ecc_buf) < 0) {
+		if (nand_correct(page, page_ptr, ecc_buf) < 0)
+		{
 			gecko_printf("boot2 page %d (NAND 0x%x) is uncorrectable\n", pages_read, page);
 			return -1;
 		}
@@ -126,44 +131,56 @@ int boot2_load(int copy)
 	valid_blocks = 0;
 
 	// find the best blockmap
-	for(block=BOOT2_START; block<=BOOT2_END; block++) {
+	for(block=BOOT2_START; block<=BOOT2_END; block++)
+	{
 		page = (block+1)*BLOCK_SIZE - 1;
 		nand_read_page(page, sector_buf, ecc_buf);
 		nand_wait();
-		// boot1 doesn't actually do this, but it's probably a good idea to try to correct 1-bit errors anyway
-		if(nand_correct(page, sector_buf, ecc_buf) < 0) {
+
+		// boot1 doesn't actually do this, but it's probably
+		// a good idea to try to correct 1-bit errors anyway
+		if (nand_correct(page, sector_buf, ecc_buf) < 0)
+		{
 			gecko_printf("boot2 map candidate page 0x%x is uncorrectable, trying anyway\n", page);
 		}
 		mapno = find_valid_map(maps);
-		if(mapno >= 0) {
+		if (mapno >= 0)
+		{
 			gecko_printf("found valid boot2 blockmap at page 0x%x, submap %d, generation %d\n",
 				page, mapno, maps[mapno].generation);
-			if(maps[mapno].generation >= good_blockmap.generation) {
+			if (maps[mapno].generation >= good_blockmap.generation)
+			{
 				memcpy(&good_blockmap, &maps[mapno], sizeof(boot2blockmap));
 				found = 1;
 			}
 		}
 	}
 
-	if(!found) {
+	if (!found)
+	{
 		gecko_printf("no valid boot2 blockmap found!\n");
 		return -1;
 	}
 
 	// traverse the blockmap and make a list of the actual boot2 blocks, in order
-	if(copy == 0) {
-		for(block=BOOT2_START; block<=BOOT2_END; block++) {
-			if(good_blockmap.blocks[block] == 0x00) {
+	if (copy == 0)
+	{
+		for(block=BOOT2_START; block<=BOOT2_END; block++)
+		{
+			if (good_blockmap.blocks[block] == 0x00)
 				boot2_blocks[valid_blocks++] = block;
-			}
 		}
-	} else if(copy == 1) {
-		for(block=BOOT2_END; block>=BOOT2_START; block--) {
-			if(good_blockmap.blocks[block] == 0x00) {
+	}
+	else if (copy == 1)
+	{
+		for(block=BOOT2_END; block>=BOOT2_START; block--)
+		{
+			if (good_blockmap.blocks[block] == 0x00)
 				boot2_blocks[valid_blocks++] = block;
-			}
 		}
-	} else {
+	}
+	else
+	{
 		gecko_printf("invalid boot2 copy %d\n", copy);
 		return -1;
 	}
@@ -175,28 +192,33 @@ int boot2_load(int copy)
 
 	// read boot2 header
 	page_ptr = boot2;
-	if(read_to(sizeof(boot2header)) < 0) {
+	if (read_to(sizeof(boot2header)) < 0)
+	{
 		gecko_printf("error while reading boot2 header");
 		return -1;
 	}
 
 	hdr = (boot2header *)boot2;
 
-	if(hdr->len != sizeof(boot2header)) {
+	if (hdr->len != sizeof(boot2header))
+	{
 		gecko_printf("invalid boot2 header size 0x%x\n", hdr->len);
 		return -1;
 	}
-	if(hdr->tmd_len != sizeof(tmd_t)) {
+	if (hdr->tmd_len != sizeof(tmd_t))
+	{
 		gecko_printf("boot2 tmd size mismatch: expected 0x%x, got 0x%x (more than one content?)\n", sizeof(tmd_t), hdr->tmd_len);
 		return -1;
 	}
-	if(hdr->tik_len != sizeof(tik_t)) {
+	if (hdr->tik_len != sizeof(tik_t))
+	{
 		gecko_printf("boot2 tik size mismatch: expected 0x%x, got 0x%x\n", sizeof(tik_t), hdr->tik_len);
 		return -1;
 	}
 
 	// read tmd, tik, certs
-	if(read_to(hdr->data_offset) < 0) {
+	if (read_to(hdr->data_offset) < 0)
+	{
 		gecko_printf("error while reading boot2 certs/tmd/ticket");
 		return -1;
 	}
@@ -227,7 +249,8 @@ int boot2_load(int copy)
 		(u32)tmd.contents.size, boot2_content_size);
 
 	// read content
-	if(read_to(hdr->data_offset + boot2_content_size) < 0) {
+	if (read_to(hdr->data_offset + boot2_content_size) < 0)
+	{
 		gecko_printf("error while reading boot2 content");
 		return -1;
 	}
@@ -239,12 +262,15 @@ int boot2_load(int copy)
 	return 0;
 }
 
-void boot2_init(void) {
+void boot2_init(void)
+{
 	boot2_copy = -1;
 	boot2_initialized = 0;
-	if(boot2_load(0) < 0) {
+	if (boot2_load(0) < 0)
+	{
 		gecko_printf("failed to load boot2 copy 0, trying copy 1...\n");
-		if(boot2_load(1) < 0) {
+		if (boot2_load(1) < 0)
+		{
 			gecko_printf("failed to load boot2 copy 1!\n");
 			return;
 		}
@@ -267,12 +293,15 @@ static u32 patch[] = {
 	0, // tid low
 };
 
-static u32 boot2_patch(ioshdr *hdr) {
+static u32 boot2_patch(ioshdr *hdr)
+{
 	u32 i, num_matches = 0;
 	u8 *ptr = (u8 *) hdr + hdr->hdrsize + hdr->loadersize;
 
-	for (i = 0; i < hdr->elfsize; i += 1) {
-		if (memcmp(ptr+i, match, sizeof(match)) == 0) {
+	for (i = 0; i < hdr->elfsize; i += 1)
+	{
+		if (memcmp(ptr+i, match, sizeof(match)) == 0)
+		{
 			num_matches++;
 			memcpy(ptr+i, patch, sizeof(patch));
 			gecko_printf("patched data @%08x\n", (u32)ptr+i);
@@ -282,7 +311,8 @@ static u32 boot2_patch(ioshdr *hdr) {
 	return num_matches;
 }
 
-u32 boot2_run(u32 tid_hi, u32 tid_lo) {
+u32 boot2_run(u32 tid_hi, u32 tid_lo)
+{
 	u32 num_matches;
 	ioshdr *hdr;
 	
@@ -296,13 +326,15 @@ u32 boot2_run(u32 tid_hi, u32 tid_lo) {
 
 	hdr = (ioshdr *) 0x11000000;
 
-	if ((tid_hi != match[1]) || (tid_lo != match[2])) {
+	if ((tid_hi != match[1]) || (tid_lo != match[2]))
+	{
 		patch[1] = tid_hi;
 		patch[2] = tid_lo;
 
 		num_matches = boot2_patch(hdr);
 
-		if (num_matches != 1) {
+		if (num_matches != 1)
+		{
 			gecko_printf("Wrong number of patches (matched %d times, expected 1), panicking\n", num_matches);
 			panic2(0, PANIC_PATCHFAIL);
 		}
@@ -320,27 +352,29 @@ u32 boot2_ipc(volatile ipc_request *req)
 	u32 vector = 0;
 
 	switch (req->req) {
-		case IPC_BOOT2_RUN:
-			if(boot2_initialized) {
-				// post first so that the memory protection doesn't kill IPC for the PowerPC
-				ipc_post(req->code, req->tag, 1, boot2_copy);
-				ipc_flush();
-				vector = boot2_run((u32)req->args[0], (u32)req->args[1]);
-			} else {
-				ipc_post(req->code, req->tag, 1, -1);
-			}
-			break;
+	case IPC_BOOT2_RUN:
+		if (boot2_initialized)
+		{
+			// post first so that the memory protection doesn't kill IPC for the PowerPC
+			ipc_post(req->code, req->tag, 1, boot2_copy);
+			ipc_flush();
+			vector = boot2_run((u32)req->args[0], (u32)req->args[1]);
+		}
+		else
+		{
+			ipc_post(req->code, req->tag, 1, -1);
+		}
+		break;
 
-		case IPC_BOOT2_TMD:
-			if (boot2_initialized)
-				ipc_post(req->code, req->tag, 1, &tmd);
-			else
-				ipc_post(req->code, req->tag, 1, -1);
+	case IPC_BOOT2_TMD:
+		if (boot2_initialized)
+			ipc_post(req->code, req->tag, 1, &tmd);
+		else
+			ipc_post(req->code, req->tag, 1, -1);
+		break;
 
-			break;
-
-		default:
-			gecko_printf("IPC: unknown SLOW BOOT2 request %04X\n", req->req);
+	default:
+		gecko_printf("IPC: unknown SLOW BOOT2 request %04X\n", req->req);
 	}
 
 	return vector;

@@ -53,49 +53,58 @@ void irq_handler(void)
 
 	flags = flags & enabled;
 
-	if(flags & IRQF_TIMER) {
+	if (flags & IRQF_TIMER)
+	{
 		if (_alarm_frequency)
 			write32(HW_ALARM, read32(HW_TIMER) + _alarm_frequency);
 
 		write32(HW_ARMIRQFLAG, IRQF_TIMER);
 	}
-	if(flags & IRQF_NAND) {
+	if (flags & IRQF_NAND)
+	{
 //		gecko_printf("IRQ: NAND\n");
 		write32(NAND_CMD, 0x7fffffff); // shut it up
 		write32(HW_ARMIRQFLAG, IRQF_NAND);
 		nand_irq();
 	}
-	if(flags & IRQF_GPIO1B) {
+	if (flags & IRQF_GPIO1B)
+	{
 //		gecko_printf("IRQ: GPIO1B\n");
 		write32(HW_GPIO1BINTFLAG, 0xFFFFFF); // shut it up
 		write32(HW_ARMIRQFLAG, IRQF_GPIO1B);
 	}
-	if(flags & IRQF_GPIO1) {
+	if (flags & IRQF_GPIO1)
+	{
 //		gecko_printf("IRQ: GPIO1\n");
 		write32(HW_GPIO1INTFLAG, 0xFFFFFF); // shut it up
 		write32(HW_ARMIRQFLAG, IRQF_GPIO1);
 	}
-	if(flags & IRQF_RESET) {
+	if (flags & IRQF_RESET)
+	{
 //		gecko_printf("IRQ: RESET\n");
 		write32(HW_ARMIRQFLAG, IRQF_RESET);
 	}
-	if(flags & IRQF_IPC) {
+	if (flags & IRQF_IPC)
+	{
 		//gecko_printf("IRQ: IPC\n");
 		ipc_irq();
 		write32(HW_ARMIRQFLAG, IRQF_IPC);
 	}
-	if(flags & IRQF_AES) {
+	if (flags & IRQF_AES)
+	{
 //		gecko_printf("IRQ: AES\n");
 		write32(HW_ARMIRQFLAG, IRQF_AES);
 	}
-	if (flags & IRQF_SDHC) {
+	if (flags & IRQF_SDHC)
+	{
 //		gecko_printf("IRQ: SDHC\n");
 		write32(HW_ARMIRQFLAG, IRQF_SDHC);
 		sdhc_irq();
 	}
 	
 	flags &= ~IRQF_ALL;
-	if(flags) {
+	if (flags)
+	{
 		gecko_printf("IRQ: unknown 0x%08x\n", flags);
 		write32(HW_ARMIRQFLAG, flags);
 	}
